@@ -121,4 +121,30 @@ describe("Solar <-> Lunar Converter", () => {
       expect([29, 30]).toContain(leapDays);
     });
   });
+
+  describe("Invalid isLeap edge cases", () => {
+    it("should return { day: 0, month: 0, year: 0 } in lunarToSolar when year has no leap month but isLeap is true", () => {
+      // 2024 has no leap month
+      const solar = lunarToSolar(1, 5, 2024, true);
+      expect(solar).toEqual({ day: 0, month: 0, year: 0 });
+    });
+
+    it("should return { day: 0, month: 0, year: 0 } in lunarToSolar when month is not the leap month of that year", () => {
+      // 2023 has leap month 2, not month 5
+      const solar = lunarToSolar(1, 5, 2023, true);
+      expect(solar).toEqual({ day: 0, month: 0, year: 0 });
+    });
+
+    it("should return 0 in getDaysInLunarMonth when year has no leap month but isLeap is true", () => {
+      // 2024 has no leap month
+      const days = getDaysInLunarMonth(5, 2024, true);
+      expect(days).toBe(0);
+    });
+
+    it("should return 0 in getDaysInLunarMonth when month is not the leap month of that year", () => {
+      // 2023 has leap month 2, not month 5
+      const days = getDaysInLunarMonth(5, 2023, true);
+      expect(days).toBe(0);
+    });
+  });
 });

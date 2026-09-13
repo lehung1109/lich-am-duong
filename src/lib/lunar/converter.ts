@@ -77,7 +77,7 @@ export function solarToLunar(dd: number, mm: number, yy: number, timezone: numbe
 
   if (b11 - a11 > 365) {
     const leapMonthDiff = getLeapMonthOffset(a11, timezone);
-    const calculatedLeapMonth = leapMonthDiff - 2 < 0 ? leapMonthDiff + 10 : leapMonthDiff - 2;
+    const calculatedLeapMonth = ((leapMonthDiff + 9) % 12) + 1;
     leapMonth = calculatedLeapMonth;
 
     if (diff >= leapMonthDiff) {
@@ -133,7 +133,7 @@ export function lunarToSolar(
 
   if (b11 - a11 > 365) {
     const leapOff = getLeapMonthOffset(a11, timezone);
-    const leapMonth = leapOff - 2 < 0 ? leapOff + 10 : leapOff - 2;
+    const leapMonth = ((leapOff + 9) % 12) + 1;
 
     if (isLeap && lunarMonth !== leapMonth) {
       // Return invalid date or fallback
@@ -141,6 +141,9 @@ export function lunarToSolar(
     } else if (isLeap || off >= leapOff) {
       off += 1;
     }
+  } else if (isLeap) {
+    // Year has no leap month, but isLeap was requested
+    return { day: 0, month: 0, year: 0 };
   }
 
   const monthStart = getNewMoonDay(k + off, timezone);
@@ -175,9 +178,17 @@ export function getDaysInLunarMonth(
 
   if (b11 - a11 > 365) {
     const leapOff = getLeapMonthOffset(a11, timezone);
-    if (isLeap || off >= leapOff) {
+    const leapMonth = ((leapOff + 9) % 12) + 1;
+
+    if (isLeap && lunarMonth !== leapMonth) {
+      // Month is not the leap month of this year
+      return 0;
+    } else if (isLeap || off >= leapOff) {
       off += 1;
     }
+  } else if (isLeap) {
+    // Year has no leap month, but isLeap was requested
+    return 0;
   }
 
   const currentMonthStart = getNewMoonDay(k + off, timezone);
