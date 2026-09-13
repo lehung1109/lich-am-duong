@@ -39,9 +39,31 @@ export function QuickNav() {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
       <div className="flex items-center gap-2">
-        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-          Tháng {viewDate.month} / {viewDate.year}
-        </h2>
+        <select
+          value={viewDate.month}
+          onChange={(e) => setViewDate(viewDate.year, Number(e.target.value))}
+          className="px-2.5 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-bold text-zinc-900 dark:text-zinc-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500"
+          aria-label="Chọn tháng"
+        >
+          {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+            <option key={m} value={m}>
+              Tháng {m}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={viewDate.year}
+          onChange={(e) => setViewDate(Number(e.target.value), viewDate.month)}
+          className="px-2.5 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-bold text-zinc-900 dark:text-zinc-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500"
+          aria-label="Chọn năm"
+        >
+          {Array.from({ length: 201 }, (_, i) => 1900 + i).map((y) => (
+            <option key={y} value={y}>
+              Năm {y}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex items-center gap-2">

@@ -10,6 +10,7 @@ export interface CalendarEvent {
     month: number;
     year?: number;
   };
+  isLeap?: boolean;
   recurrence: "once" | "yearly" | "monthly";
   color?: string;
   reminderDaysBefore: number;
@@ -44,8 +45,9 @@ export function generateICS(events: CalendarEvent[], targetYear: number = new Da
 
   for (const event of events) {
     for (const yr of yearsToGenerate) {
-      if (event.recurrence === "once" && event.date.year && event.date.year !== yr) {
-        continue;
+      if (event.recurrence === "once") {
+        const eventYr = event.date.year ?? targetYear;
+        if (eventYr !== yr) continue;
       }
 
       const solarDates: { day: number; month: number; year: number }[] = [];
@@ -70,10 +72,13 @@ export function generateICS(events: CalendarEvent[], targetYear: number = new Da
             if (solar.day > 0) solarDates.push(solar);
           }
         } else {
-          const solar = lunarToSolar(event.date.day, event.date.month, yr, false);
+          const isLeapMonth = Boolean(event.isLeap);
+          const solar = lunarToSolar(event.date.day, event.date.month, yr, isLeapMonth);
           if (solar.day > 0) solarDates.push(solar);
         }
       }
+
+      const dtstamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
       for (const sDate of solarDates) {
         const dtString = formatDateToICS(sDate.year, sDate.month, sDate.day);
@@ -81,7 +86,7 @@ export function generateICS(events: CalendarEvent[], targetYear: number = new Da
 
         lines.push("BEGIN:VEVENT");
         lines.push(`UID:${uid}`);
-        lines.push(`DTSTAMP:${formatDateToICS(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate())}T000000Z`);
+        lines.push(`DTSTAMP:${dtstamp}`);
         lines.push(`DTSTART;VALUE=DATE:${dtString}`);
         lines.push(`SUMMARY:${event.title}`);
         if (event.description) {

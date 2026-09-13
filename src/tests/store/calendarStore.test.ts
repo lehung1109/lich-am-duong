@@ -132,6 +132,28 @@ describe("Calendar Zustand Store", () => {
     expect(matchedGio.some((e) => e.title === "Giỗ đặc biệt")).toBe(true);
   });
 
+  it("should NOT duplicate yearly lunar events in leap months of the same year", () => {
+    const store = useCalendarStore.getState();
+    // In 2023, lunar month 2 is followed by leap month 2 (tháng 2 nhuận)
+    // 15/02/2023 lunar (normal) is 06/03/2023 solar
+    // 15/02/2023 lunar (leap) is 05/04/2023 solar
+    store.addEvent({
+      title: "Giỗ cụ ngày 15 tháng 2",
+      calendarType: "lunar",
+      date: { day: 15, month: 2 },
+      recurrence: "yearly",
+      reminderDaysBefore: 1,
+    });
+
+    // Should match regular month 2 (06/03/2023)
+    const regularMatch = store.getEventsForSolarDay(6, 3, 2023);
+    expect(regularMatch.some((e) => e.title === "Giỗ cụ ngày 15 tháng 2")).toBe(true);
+
+    // Should NOT match leap month 2 (05/04/2023)
+    const leapMatch = store.getEventsForSolarDay(5, 4, 2023);
+    expect(leapMatch.some((e) => e.title === "Giỗ cụ ngày 15 tháng 2")).toBe(false);
+  });
+
   it("should handle navigation actions: setSelectedDate, setViewDate, goToToday, setActiveTab", () => {
     const store = useCalendarStore.getState();
 

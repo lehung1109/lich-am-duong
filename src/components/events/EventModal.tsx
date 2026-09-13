@@ -10,6 +10,8 @@ interface Props {
   eventToEdit?: CalendarEvent;
   defaultDate?: { day: number; month: number; year: number };
   defaultCalendarType?: "lunar" | "solar";
+  defaultIsLeap?: boolean;
+  solarReference?: { day: number; month: number; year: number };
 }
 
 export function EventModal({
@@ -18,6 +20,8 @@ export function EventModal({
   eventToEdit,
   defaultDate,
   defaultCalendarType,
+  defaultIsLeap,
+  solarReference,
 }: Props) {
   const { addEvent, updateEvent } = useCalendarStore();
 
@@ -28,6 +32,10 @@ export function EventModal({
   );
   const [day, setDay] = useState(eventToEdit?.date.day || defaultDate?.day || 1);
   const [month, setMonth] = useState(eventToEdit?.date.month || defaultDate?.month || 1);
+  const [year, setYear] = useState(
+    eventToEdit?.date.year || defaultDate?.year || new Date().getFullYear()
+  );
+  const [isLeap, setIsLeap] = useState(eventToEdit?.isLeap || defaultIsLeap || false);
   const [recurrence, setRecurrence] = useState<"once" | "yearly" | "monthly">(
     eventToEdit?.recurrence || "yearly"
   );
@@ -35,18 +43,36 @@ export function EventModal({
     eventToEdit?.reminderDaysBefore ?? 1
   );
 
+  const handleCalendarTypeChange = (newType: "lunar" | "solar") => {
+    if (newType === calendarType) return;
+    if (newType === "solar" && solarReference && defaultDate && day === defaultDate.day && month === defaultDate.month) {
+      setDay(solarReference.day);
+      setMonth(solarReference.month);
+      setYear(solarReference.year);
+    } else if (newType === "lunar" && solarReference && defaultDate && day === solarReference.day && month === solarReference.month) {
+      setDay(defaultDate.day);
+      setMonth(defaultDate.month);
+      setYear(defaultDate.year);
+      if (defaultIsLeap) setIsLeap(defaultIsLeap);
+    }
+    setCalendarType(newType);
+  };
+
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
+    const eventYear = recurrence === "once" ? year : (eventToEdit?.date.year ?? defaultDate?.year);
+
     if (eventToEdit) {
       updateEvent(eventToEdit.id, {
         title,
         description,
         calendarType,
-        date: { day, month, year: defaultDate?.year ?? eventToEdit?.date.year },
+        date: { day, month, year: eventYear },
+        isLeap: calendarType === "lunar" ? isLeap : false,
         recurrence,
         reminderDaysBefore,
       });
@@ -55,7 +81,8 @@ export function EventModal({
         title,
         description,
         calendarType,
-        date: { day, month, year: defaultDate?.year },
+        date: { day, month, year: eventYear },
+        isLeap: calendarType === "lunar" ? isLeap : false,
         recurrence,
         reminderDaysBefore,
       });
@@ -103,7 +130,7 @@ export function EventModal({
               </label>
               <select
                 value={calendarType}
-                onChange={(e) => setCalendarType(e.target.value as "lunar" | "solar")}
+                onChange={(e) => handleCalendarTypeChange(e.target.value as "lunar" | "solar")}
                 className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="lunar">Lịch Âm (Giỗ, Rằm...)</option>
@@ -127,10 +154,10 @@ export function EventModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className={recurrence === "once" ? "grid grid-cols-3 gap-3" : recurrence !== "monthly" ? "grid grid-cols-2 gap-3" : "grid grid-cols-1"}>
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Ngày
+                Ngày {calendarType === "lunar" ? "(Âm lịch)" : "(Dương lịch)"}
               </label>
               <input
                 type="number"
@@ -145,7 +172,7 @@ export function EventModal({
             {recurrence !== "monthly" && (
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Tháng
+                  Tháng {calendarType === "lunar" ? "(Âm lịch)" : "(Dương lịch)"}
                 </label>
                 <input
                   type="number"
@@ -157,7 +184,35 @@ export function EventModal({
                 />
               </div>
             )}
+
+            {recurrence === "once" && (
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  Năm
+                </label>
+                <input
+                  type="number"
+                  min="1900"
+                  max="2100"
+                  value={year}
+                  onChange={(e) => setYear(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+            )}
           </div>
+
+          {calendarType === "lunar" && recurrence !== "monthly" && (
+            <label className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300 cursor-pointer pt-0.5">
+              <input
+                type="checkbox"
+                checked={isLeap}
+                onChange={(e) => setIsLeap(e.target.checked)}
+                className="rounded text-red-600 focus:ring-red-500"
+              />
+              Sự kiện diễn ra vào tháng nhuận (Leap month)
+            </label>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">

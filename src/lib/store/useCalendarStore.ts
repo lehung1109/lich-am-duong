@@ -152,11 +152,20 @@ export const useCalendarStore = create<CalendarState>()(
                 return evt.date.day === lunar.day;
               }
               if (evt.recurrence === "yearly") {
-                return evt.date.day === lunar.day && evt.date.month === lunar.month;
+                // Yearly lunar events default to normal month (not leap month) unless explicitly marked isLeap
+                const leapMatches = evt.isLeap ? lunar.isLeap : !lunar.isLeap;
+                return (
+                  evt.date.day === lunar.day &&
+                  evt.date.month === lunar.month &&
+                  leapMatches
+                );
               }
+              // Once lunar event
+              const leapMatches = evt.isLeap ? lunar.isLeap : !lunar.isLeap;
               return (
                 evt.date.day === lunar.day &&
                 evt.date.month === lunar.month &&
+                leapMatches &&
                 (evt.date.year ? evt.date.year === lunar.year : true)
               );
             }

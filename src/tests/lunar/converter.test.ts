@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { solarToLunar, lunarToSolar, getDaysInLunarMonth } from "@/lib/lunar/converter";
+import { solarToLunar, lunarToSolar, getDaysInLunarMonth, getLeapMonthForYear } from "@/lib/lunar/converter";
 
 describe("Solar <-> Lunar Converter", () => {
   describe("Tết Nguyên Đán conversions", () => {
@@ -145,6 +145,32 @@ describe("Solar <-> Lunar Converter", () => {
       // 2023 has leap month 2, not month 5
       const days = getDaysInLunarMonth(5, 2023, true);
       expect(days).toBe(0);
+    });
+
+    it("should return { day: 0, month: 0, year: 0 } when lunarDay exceeds days in lunar month (e.g. day 30 in 29-day month)", () => {
+      // Find a 29-day month in 2024 (e.g. month 1, 3, 5, etc.)
+      for (let m = 1; m <= 12; m++) {
+        const days = getDaysInLunarMonth(m, 2024);
+        if (days === 29) {
+          const solar30 = lunarToSolar(30, m, 2024);
+          expect(solar30).toEqual({ day: 0, month: 0, year: 0 });
+          break;
+        }
+      }
+    });
+
+    it("should return { day: 0, month: 0, year: 0 } for negative or out-of-bounds days and months", () => {
+      expect(lunarToSolar(0, 1, 2024)).toEqual({ day: 0, month: 0, year: 0 });
+      expect(lunarToSolar(-1, 1, 2024)).toEqual({ day: 0, month: 0, year: 0 });
+      expect(lunarToSolar(31, 1, 2024)).toEqual({ day: 0, month: 0, year: 0 });
+      expect(lunarToSolar(15, 0, 2024)).toEqual({ day: 0, month: 0, year: 0 });
+      expect(lunarToSolar(15, 13, 2024)).toEqual({ day: 0, month: 0, year: 0 });
+    });
+
+    it("should calculate getLeapMonthForYear accurately", () => {
+      expect(getLeapMonthForYear(2023)).toBe(2); // Tháng 2 nhuận
+      expect(getLeapMonthForYear(2024)).toBe(0); // Không nhuận
+      expect(getLeapMonthForYear(2025)).toBe(6); // Tháng 6 nhuận
     });
   });
 });

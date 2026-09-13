@@ -1,10 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { solarToLunar, lunarToSolar } from "@/lib/lunar/converter";
+import { solarToLunar, lunarToSolar, getLeapMonthForYear } from "@/lib/lunar/converter";
 import { getFullCanChi } from "@/lib/lunar/canchi";
 import { useMounted } from "@/hooks/useMounted";
-import { ArrowRightLeft } from "lucide-react";
+import { ArrowRightLeft, AlertCircle } from "lucide-react";
+
+function isValidSolarDate(d: number, m: number, y: number): boolean {
+  if (m < 1 || m > 12 || d < 1 || d > 31 || y < 1900 || y > 2100) return false;
+  const dateObj = new Date(y, m - 1, d);
+  return dateObj.getFullYear() === y && dateObj.getMonth() === m - 1 && dateObj.getDate() === d;
+}
 
 export function DateConverter() {
   const mounted = useMounted();
@@ -33,10 +39,12 @@ export function DateConverter() {
     );
   }
 
+  const leapMonthOfYear = getLeapMonthForYear(year);
+
   const solarResult =
     mode === "lunarToSolar" ? lunarToSolar(day, month, year, isLeap) : null;
   const lunarResult =
-    mode === "solarToLunar" ? solarToLunar(day, month, year) : null;
+    mode === "solarToLunar" && isValidSolarDate(day, month, year) ? solarToLunar(day, month, year) : null;
 
   const isSolarValid =
     solarResult !== null && solarResult.day > 0 && solarResult.month > 0 && solarResult.year > 0;
@@ -137,15 +145,26 @@ export function DateConverter() {
           </div>
 
           {mode === "lunarToSolar" && (
-            <label className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300 cursor-pointer pt-1">
-              <input
-                type="checkbox"
-                checked={isLeap}
-                onChange={(e) => setIsLeap(e.target.checked)}
-                className="rounded text-red-600 focus:ring-red-500"
-              />
-              Tháng nhuận (Leap month)
-            </label>
+            <div className="pt-1 space-y-1">
+              <label className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isLeap}
+                  onChange={(e) => setIsLeap(e.target.checked)}
+                  className="rounded text-red-600 focus:ring-red-500"
+                />
+                Tháng nhuận (Leap month)
+              </label>
+              {leapMonthOfYear > 0 ? (
+                <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                  ℹ️ Năm {year} có tháng {leapMonthOfYear} nhuận
+                </p>
+              ) : (
+                <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
+                  Năm {year} không có tháng nhuận
+                </p>
+              )}
+            </div>
           )}
         </div>
 
@@ -156,20 +175,26 @@ export function DateConverter() {
           </span>
 
           <div className="text-2xl font-extrabold text-red-700 dark:text-red-400 my-2">
-            {mode === "solarToLunar" && isLunarValid && (
-              <>
-                Ngày {lunarResult.day} tháng {lunarResult.month}{" "}
-                {lunarResult.isLeap ? "(Nhuận)" : ""} năm {lunarResult.year}
-              </>
-            )}
+            {mode === "solarToLunar" &&
+              (isLunarValid ? (
+                <>
+                  Ngày {lunarResult.day} tháng {lunarResult.month}{" "}
+                  {lunarResult.isLeap ? "(Nhuận)" : ""} năm {lunarResult.year}
+                </>
+              ) : (
+                <span className="text-sm font-medium text-red-500 flex items-center justify-center gap-1">
+                  <AlertCircle className="w-4 h-4" /> Ngày dương lịch không hợp lệ
+                </span>
+              ))}
+
             {mode === "lunarToSolar" &&
               (isSolarValid ? (
                 <>
                   Ngày {solarResult.day} tháng {solarResult.month} năm {solarResult.year}
                 </>
               ) : (
-                <span className="text-sm font-medium text-red-500">
-                  Ngày hoặc tháng nhuận không hợp lệ
+                <span className="text-sm font-medium text-red-500 flex items-center justify-center gap-1">
+                  <AlertCircle className="w-4 h-4" /> Ngày hoặc tháng nhuận không hợp lệ
                 </span>
               ))}
           </div>

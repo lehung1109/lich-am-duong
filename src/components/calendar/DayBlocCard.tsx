@@ -61,23 +61,35 @@ export function DayBlocCard() {
           </p>
         </div>
 
-        {/* Can Chi 4 trụ */}
+        {/* Can Chi 4 trụ: Năm, Tháng, Ngày, Giờ */}
         <div className="w-full grid grid-cols-2 gap-2 text-xs text-left bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-lg my-2">
           <div>
-            <span className="text-zinc-500 dark:text-zinc-400">Ngày:</span>{" "}
-            <span className="font-semibold text-zinc-800 dark:text-zinc-200">{canChi.dayCanChi}</span>
+            <span className="text-zinc-500 dark:text-zinc-400">Năm:</span>{" "}
+            <span className="font-semibold text-zinc-800 dark:text-zinc-200">{canChi.yearCanChi}</span>
           </div>
           <div>
             <span className="text-zinc-500 dark:text-zinc-400">Tháng:</span>{" "}
             <span className="font-semibold text-zinc-800 dark:text-zinc-200">{canChi.monthCanChi}</span>
           </div>
           <div>
+            <span className="text-zinc-500 dark:text-zinc-400">Ngày:</span>{" "}
+            <span className="font-semibold text-zinc-800 dark:text-zinc-200">{canChi.dayCanChi}</span>
+          </div>
+          <div>
+            <span className="text-zinc-500 dark:text-zinc-400">Giờ:</span>{" "}
+            <span className="font-semibold text-red-600 dark:text-red-400">{canChi.hourCanChi}</span>
+          </div>
+        </div>
+
+        {/* Tiết khí & Trực */}
+        <div className="w-full flex items-center justify-between text-xs px-3 py-2 bg-amber-50/40 dark:bg-amber-950/20 rounded-lg text-zinc-600 dark:text-zinc-400 border border-amber-200/40 dark:border-amber-900/30 my-1">
+          <div>
             <span className="text-zinc-500 dark:text-zinc-400">Tiết khí:</span>{" "}
-            <span className="font-semibold text-zinc-800 dark:text-zinc-200">{fengShui.tietKhi}</span>
+            <strong className="text-zinc-800 dark:text-zinc-200">{fengShui.tietKhi}</strong>
           </div>
           <div>
             <span className="text-zinc-500 dark:text-zinc-400">Trực:</span>{" "}
-            <span className="font-semibold text-zinc-800 dark:text-zinc-200">{fengShui.truc}</span>
+            <strong className="text-zinc-800 dark:text-zinc-200">{fengShui.truc}</strong>
           </div>
         </div>
 
@@ -152,8 +164,10 @@ export function DayBlocCard() {
         <EventModal
           isOpen={showAddEvent}
           onClose={() => setShowAddEvent(false)}
-          defaultDate={{ day, month, year }}
-          defaultCalendarType="solar"
+          defaultDate={{ day: lunar.day, month: lunar.month, year: lunar.year }}
+          defaultCalendarType="lunar"
+          defaultIsLeap={lunar.isLeap}
+          solarReference={{ day, month, year }}
         />
       )}
     </div>

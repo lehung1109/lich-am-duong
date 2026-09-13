@@ -105,7 +105,21 @@ export function solarToLunar(dd: number, mm: number, yy: number, timezone: numbe
 }
 
 /**
+ * Returns the leap month (1-12) for a given lunar year, or 0 if the year has no leap month.
+ */
+export function getLeapMonthForYear(lunarYear: number, timezone: number = TIMEZONE): number {
+  const a11 = getLunarMonth11(lunarYear - 1, timezone);
+  const b11 = getLunarMonth11(lunarYear, timezone);
+  if (b11 - a11 > 365) {
+    const leapOff = getLeapMonthOffset(a11, timezone);
+    return ((leapOff + 9) % 12) + 1;
+  }
+  return 0;
+}
+
+/**
  * Converts a Lunar date (day, month, year, isLeap) to the corresponding Solar date.
+ * Returns { day: 0, month: 0, year: 0 } if the date is invalid (e.g. day 30 in a 29-day month).
  */
 export function lunarToSolar(
   lunarDay: number,
@@ -114,6 +128,10 @@ export function lunarToSolar(
   isLeap: boolean = false,
   timezone: number = TIMEZONE
 ): SolarDate {
+  if (lunarMonth < 1 || lunarMonth > 12) {
+    return { day: 0, month: 0, year: 0 };
+  }
+
   let a11: number;
   let b11: number;
 
@@ -147,11 +165,18 @@ export function lunarToSolar(
   }
 
   const monthStart = getNewMoonDay(k + off, timezone);
+  const nextMonthStart = getNewMoonDay(k + off + 1, timezone);
+  const daysInMonth = nextMonthStart - monthStart;
+
+  if (lunarDay < 1 || lunarDay > daysInMonth) {
+    return { day: 0, month: 0, year: 0 };
+  }
+
   return jdToDate(monthStart + lunarDay - 1);
 }
 
 /**
- * Returns the number of days (29 or 30) in a given lunar month.
+ * Returns the number of days (29 or 30) in a given lunar month, or 0 if invalid.
  */
 export function getDaysInLunarMonth(
   lunarMonth: number,
@@ -159,6 +184,10 @@ export function getDaysInLunarMonth(
   isLeap: boolean = false,
   timezone: number = TIMEZONE
 ): number {
+  if (lunarMonth < 1 || lunarMonth > 12) {
+    return 0;
+  }
+
   let a11: number;
   let b11: number;
 
@@ -195,3 +224,4 @@ export function getDaysInLunarMonth(
   const nextMonthStart = getNewMoonDay(k + off + 1, timezone);
   return nextMonthStart - currentMonthStart;
 }
+
