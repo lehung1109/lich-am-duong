@@ -70,7 +70,7 @@ export function MonthView() {
             <div className="flex gap-0.5">
               {dayEvents.slice(0, 3).map((evt, idx) => (
                 <span
-                  key={idx}
+                  key={evt.id || idx}
                   className="w-1.5 h-1.5 rounded-full bg-red-500"
                   title={evt.title}
                 />
