@@ -153,6 +153,7 @@ export function DayBlocCard() {
           isOpen={showAddEvent}
           onClose={() => setShowAddEvent(false)}
           defaultDate={{ day, month, year }}
+          defaultCalendarType="solar"
         />
       )}
     </div>

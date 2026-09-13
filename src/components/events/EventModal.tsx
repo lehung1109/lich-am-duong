@@ -9,15 +9,22 @@ interface Props {
   onClose: () => void;
   eventToEdit?: CalendarEvent;
   defaultDate?: { day: number; month: number; year: number };
+  defaultCalendarType?: "lunar" | "solar";
 }
 
-export function EventModal({ isOpen, onClose, eventToEdit, defaultDate }: Props) {
+export function EventModal({
+  isOpen,
+  onClose,
+  eventToEdit,
+  defaultDate,
+  defaultCalendarType,
+}: Props) {
   const { addEvent, updateEvent } = useCalendarStore();
 
   const [title, setTitle] = useState(eventToEdit?.title || "");
   const [description, setDescription] = useState(eventToEdit?.description || "");
   const [calendarType, setCalendarType] = useState<"lunar" | "solar">(
-    eventToEdit?.calendarType || "lunar"
+    eventToEdit?.calendarType || defaultCalendarType || "lunar"
   );
   const [day, setDay] = useState(eventToEdit?.date.day || defaultDate?.day || 1);
   const [month, setMonth] = useState(eventToEdit?.date.month || defaultDate?.month || 1);
@@ -39,7 +46,7 @@ export function EventModal({ isOpen, onClose, eventToEdit, defaultDate }: Props)
         title,
         description,
         calendarType,
-        date: { day, month, year: defaultDate?.year },
+        date: { day, month, year: defaultDate?.year ?? eventToEdit?.date.year },
         recurrence,
         reminderDaysBefore,
       });
@@ -58,7 +65,12 @@ export function EventModal({ isOpen, onClose, eventToEdit, defaultDate }: Props)
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl max-w-md w-full p-6 border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3 mb-4">
           <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
