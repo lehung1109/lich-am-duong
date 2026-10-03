@@ -1,4 +1,4 @@
-import { lunarToSolar } from "../lunar/converter";
+import { lunarToSolar, getLeapMonthForYear } from "../lunar/converter";
 
 export interface CalendarEvent {
   id: string;
@@ -67,13 +67,23 @@ export function generateICS(events: CalendarEvent[], targetYear: number = new Da
       } else {
         // Lunar event conversion
         if (event.recurrence === "monthly") {
+          const leapMonth = getLeapMonthForYear(yr);
           for (let lm = 1; lm <= 12; lm++) {
             const solar = lunarToSolar(event.date.day, lm, yr, false);
             if (solar.day > 0) solarDates.push(solar);
+            if (lm === leapMonth) {
+              const leapSolar = lunarToSolar(event.date.day, lm, yr, true);
+              if (leapSolar.day > 0) solarDates.push(leapSolar);
+            }
           }
         } else {
           const isLeapMonth = Boolean(event.isLeap);
-          const solar = lunarToSolar(event.date.day, event.date.month, yr, isLeapMonth);
+          let solar = lunarToSolar(event.date.day, event.date.month, yr, isLeapMonth);
+          // If yearly event was set for a leap month but this year has no leap month,
+          // fall back to the regular month so the user doesn't miss their anniversary!
+          if (solar.day === 0 && isLeapMonth) {
+            solar = lunarToSolar(event.date.day, event.date.month, yr, false);
+          }
           if (solar.day > 0) solarDates.push(solar);
         }
       }

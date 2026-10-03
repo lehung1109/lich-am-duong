@@ -123,11 +123,35 @@ describe("iCalendar (.ics) Generator", () => {
       }
     ];
 
-    // For 2024 and 2025 (2 years), monthly recurrence generates 24 events (12 * 2)
+    // Lunar year 2024 has 12 months, but lunar year 2025 has 13 months (leap month 6).
+    // Monthly lunar recurrence must include the leap month, totaling 25 events (12 + 13)
     const icsContent = generateICS(mockEvents, 2024);
     const veventMatches = icsContent.match(/BEGIN:VEVENT/g);
     expect(veventMatches).not.toBeNull();
-    expect(veventMatches?.length).toBe(24);
+    expect(veventMatches?.length).toBe(25);
+    // Should include 15/06 nhuận 2025 (solar date 2025-08-08)
+    expect(icsContent).toContain("DTSTART;VALUE=DATE:20250808");
+  });
+
+  it("should fall back to regular month for yearly lunar leap month event in non-leap years", () => {
+    const mockEvents: CalendarEvent[] = [
+      {
+        id: "evt-leap-anniversary",
+        title: "Kỷ niệm ngày đặc biệt",
+        calendarType: "lunar",
+        date: { day: 15, month: 6, year: 2025 },
+        isLeap: true,
+        recurrence: "yearly",
+        reminderDaysBefore: 1,
+        createdAt: "2024-01-01T00:00:00.000Z"
+      }
+    ];
+
+    // In 2025 (has leap month 6), it should be on leap month 6 (2025-08-08)
+    // In 2024 (no leap month 6), it should fall back to regular month 6 (2024-07-20) instead of being dropped
+    const icsContent = generateICS(mockEvents, 2024);
+    expect(icsContent).toContain("DTSTART;VALUE=DATE:20250808");
+    expect(icsContent).toContain("DTSTART;VALUE=DATE:20240720");
   });
 
   it("should generate 12 occurrences per year for solar monthly recurrence", () => {

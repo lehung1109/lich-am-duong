@@ -154,6 +154,41 @@ describe("Calendar Zustand Store", () => {
     expect(leapMatch.some((e) => e.title === "Giỗ cụ ngày 15 tháng 2")).toBe(false);
   });
 
+  it("should match yearly lunar event with isLeap in regular month for years without that leap month", () => {
+    const store = useCalendarStore.getState();
+    store.addEvent({
+      title: "Kỷ niệm ngày đặc biệt",
+      calendarType: "lunar",
+      date: { day: 15, month: 6, year: 2025 },
+      isLeap: true,
+      recurrence: "yearly",
+      reminderDaysBefore: 1,
+    });
+
+    // In 2025 (has leap month 6): matches leap month 6 (solar 2025-08-08)
+    const match2025Leap = store.getEventsForSolarDay(8, 8, 2025);
+    expect(match2025Leap.some((e) => e.title === "Kỷ niệm ngày đặc biệt")).toBe(true);
+
+    // In 2024 (no leap month 6): must fall back to regular month 6 (solar 2024-07-20)
+    const match2024Regular = store.getEventsForSolarDay(20, 7, 2024);
+    expect(match2024Regular.some((e) => e.title === "Kỷ niệm ngày đặc biệt")).toBe(true);
+  });
+
+  it("should match day 30 event on day 29 when lunar month has only 29 days (tháng thiếu)", () => {
+    const store = useCalendarStore.getState();
+    store.addEvent({
+      title: "Giao thừa / Tất niên 30 Tết",
+      calendarType: "lunar",
+      date: { day: 30, month: 12 },
+      recurrence: "yearly",
+      reminderDaysBefore: 1,
+    });
+
+    // Lunar year 2021 had 29 days in month 12 (last day was 29/12 ÂL = 31/01/2022 DL)
+    const match29Tet = store.getEventsForSolarDay(31, 1, 2022);
+    expect(match29Tet.some((e) => e.title === "Giao thừa / Tất niên 30 Tết")).toBe(true);
+  });
+
   it("should handle navigation actions: setSelectedDate, setViewDate, goToToday, setActiveTab", () => {
     const store = useCalendarStore.getState();
 

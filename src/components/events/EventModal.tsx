@@ -64,7 +64,7 @@ export function EventModal({
     e.preventDefault();
     if (!title.trim()) return;
 
-    const eventYear = recurrence === "once" ? year : (eventToEdit?.date.year ?? defaultDate?.year);
+    const eventYear = recurrence === "once" ? year : (eventToEdit?.date.year ?? defaultDate?.year ?? year);
 
     if (eventToEdit) {
       updateEvent(eventToEdit.id, {

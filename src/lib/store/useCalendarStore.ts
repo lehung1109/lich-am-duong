@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { solarToLunar } from "../lunar/converter";
+import { solarToLunar, getDaysInLunarMonth, getLeapMonthForYear } from "../lunar/converter";
 import { CalendarEvent } from "../ical/generator";
 
 export type { CalendarEvent };
@@ -148,22 +148,42 @@ export const useCalendarStore = create<CalendarState>()(
               );
             } else {
               // Lunar event
+              const daysInThisLunarMonth = getDaysInLunarMonth(
+                lunar.month,
+                lunar.year,
+                lunar.isLeap
+              );
+              // If event is on day 30 but current lunar month only has 29 days (tháng thiếu),
+              // day 29 is the last day of the month (e.g. 29 Tết is Giao thừa/Tất niên).
+              const dayMatches =
+                evt.date.day === lunar.day ||
+                (evt.date.day === 30 && daysInThisLunarMonth === 29 && lunar.day === 29);
+
               if (evt.recurrence === "monthly") {
-                return evt.date.day === lunar.day;
+                return dayMatches;
               }
+
+              // Leap month handling:
+              // If event was recorded in a leap month, but the current year has no leap month
+              // for this month, fall back to the regular month so the user doesn't miss the anniversary.
+              const yearLeapMonth = getLeapMonthForYear(lunar.year);
+              const hasLeapMonthForEvent = yearLeapMonth === evt.date.month;
+              const leapMatches = evt.isLeap
+                ? hasLeapMonthForEvent
+                  ? lunar.isLeap
+                  : !lunar.isLeap
+                : !lunar.isLeap;
+
               if (evt.recurrence === "yearly") {
-                // Yearly lunar events default to normal month (not leap month) unless explicitly marked isLeap
-                const leapMatches = evt.isLeap ? lunar.isLeap : !lunar.isLeap;
                 return (
-                  evt.date.day === lunar.day &&
+                  dayMatches &&
                   evt.date.month === lunar.month &&
                   leapMatches
                 );
               }
               // Once lunar event
-              const leapMatches = evt.isLeap ? lunar.isLeap : !lunar.isLeap;
               return (
-                evt.date.day === lunar.day &&
+                dayMatches &&
                 evt.date.month === lunar.month &&
                 leapMatches &&
                 (evt.date.year ? evt.date.year === lunar.year : true)

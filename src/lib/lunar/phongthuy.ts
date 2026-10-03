@@ -13,18 +13,18 @@ export const HOUR_NAMES = [
 // Hoàng đạo patterns based on day Chi (0: Tý, 1: Sửu, ..., 11: Hợi)
 // 1: Hoàng Đạo, 0: Hắc Đạo
 export const HOANG_DAO_PATTERNS: Record<number, number[]> = {
-  0: [1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0], // Tý, Ngọ
-  6: [1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0],
-  1: [0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1], // Sửu, Mùi
-  7: [0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1],
-  2: [1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0], // Dần, Thân
-  8: [1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0],
-  3: [0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1], // Mão, Dậu
-  9: [0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],
-  4: [1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1], // Thìn, Tuất
-  10: [1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1],
-  5: [0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1], // Tỵ, Hợi
-  11: [0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1]
+  0: [1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0], // Tý, Ngọ (Tý, Sửu, Mão, Ngọ, Thân, Dậu)
+  6: [1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0],
+  1: [0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1], // Sửu, Mùi (Dần, Mão, Tỵ, Thân, Tuất, Hợi)
+  7: [0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1],
+  2: [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0], // Dần, Thân (Tý, Sửu, Thìn, Tỵ, Mùi, Tuất)
+  8: [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0],
+  3: [1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0], // Mão, Dậu (Tý, Dần, Mão, Ngọ, Mùi, Dậu)
+  9: [1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0],
+  4: [0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1], // Thìn, Tuất (Dần, Thìn, Tỵ, Thân, Dậu, Hợi)
+  10: [0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1],
+  5: [0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1], // Tỵ, Hợi (Sửu, Thìn, Ngọ, Mùi, Tuất, Hợi)
+  11: [0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1]
 };
 
 // 12 Trực
@@ -105,8 +105,8 @@ export function getDayFengShui(dd: number, mm: number, yy: number, lunarMonth: n
   const trucIndex = ((dayChiIndex - monthChiIndex) % 12 + 12) % 12;
   const truc = TRUC_NAMES[trucIndex];
 
-  // 28 Sao cycle: constant modulo against Julian Day
-  const saoIndex = ((jd + 16) % 28 + 28) % 28;
+  // 28 Sao cycle: constant modulo against Julian Day (synchronized with 7 days of week)
+  const saoIndex = ((jd + 11) % 28 + 28) % 28;
   const saoInfo = SAO_NAMES[saoIndex];
 
   return {

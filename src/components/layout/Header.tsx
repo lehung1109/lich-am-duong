@@ -12,7 +12,16 @@ export function Header() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setIsDark(document.documentElement.classList.contains("dark"));
+      const savedTheme = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const shouldBeDark = savedTheme === "dark" || (!savedTheme && prefersDark);
+      if (shouldBeDark) {
+        document.documentElement.classList.add("dark");
+        setIsDark(true);
+      } else {
+        document.documentElement.classList.remove("dark");
+        setIsDark(false);
+      }
     }
   }, [mounted]);
 
@@ -21,8 +30,10 @@ export function Header() {
       const nextDark = !document.documentElement.classList.contains("dark");
       if (nextDark) {
         document.documentElement.classList.add("dark");
+        localStorage.setItem("theme", "dark");
       } else {
         document.documentElement.classList.remove("dark");
+        localStorage.setItem("theme", "light");
       }
       setIsDark(nextDark);
     }

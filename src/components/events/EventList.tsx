@@ -136,9 +136,16 @@ export function EventList() {
                 </span>
                 <h4 className="font-bold text-zinc-900 dark:text-zinc-100 text-base">{evt.title}</h4>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                  Ngày {evt.date.day}
-                  {evt.date.month ? ` tháng ${evt.date.month}` : ""}
-                  {evt.date.year ? ` năm ${evt.date.year}` : ""}
+                  {evt.recurrence === "monthly" ? (
+                    <>Ngày {evt.date.day} hàng tháng</>
+                  ) : (
+                    <>
+                      Ngày {evt.date.day}
+                      {evt.date.month ? ` tháng ${evt.date.month}` : ""}
+                      {evt.calendarType === "lunar" && evt.isLeap ? " (Nhuận)" : ""}
+                      {evt.date.year ? ` năm ${evt.date.year}` : ""}
+                    </>
+                  )}
                 </p>
                 {evt.description && (
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 italic">
